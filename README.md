@@ -1,4 +1,4 @@
-mlillumination
+ML Illumination
 ==============
 
-global illumination using machine learning
+Global illumination using machine learning.
