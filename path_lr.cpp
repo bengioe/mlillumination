@@ -151,7 +151,7 @@ public:
 		bool isValidData = true;
 
 		RadianceQueryRecord initRRec = rRec;
-		int NITER = 40;
+		int NITER = 80;
 		for (int iter=0;iter<NITER;iter++){
 		  rRec = initRRec;
 		  Intersection &its = rRec.its;

@@ -116,7 +116,13 @@ static StatsCounter avgPathLength("Path tracer", "Average path length", EAverage
 float sigmoid(float x){
   return 1 / (1 + exp(-x));
 }
+float rectifier(float x){
+  //return x > 1? 1 : x<-1 ? -1 : x;
+  return x < 0 ? 0 : x;
+}
+
 static Point global_L;
+static bool printstuff = true;
 
 class MIPathTracerEval : public MonteCarloIntegrator {
 public:
@@ -161,6 +167,7 @@ public:
 	    printf("\n");
 	    float* w = new float[flat_size];
 	    file.read((char*)w, sizeof(float)*flat_size);
+	    printf("%f %f %f...\n",w[0],w[1],w[2]);
 	    *wps[i] = w;
 	  }
 	  file.close();
@@ -183,16 +190,20 @@ public:
 	  evalNet(r,g,b,TargetX, TargetN, TargetV, TargetL);
 	  printf("z3: %f %f %f\n",r,g,b);
 	  }
+	  printstuff = false;
 	}
         
         void evalNet(float& r, float& g, float& b, Point X, Vector N, Vector V, Vector L) const{
 	  /*printf("%f %f %f - %f %f %f - %f %f %f\n", X.x,X.y,X.z, 
 			  N.x,N.y,N.z, 
 			  V.x,V.y,V.z);*/
+#define ACTIVE1 rectifier
+#define ACTIVE2 rectifier
+#define ACTIVE3 sigmoid
 	  float data[] = {X.x/600.,X.y/600.,X.z/600., 
 			  N.x,N.y,N.z, 
 			  V.x,V.y,V.z,
-			  L.x,L.y,L.z};
+			  L.x/600.,L.y/600.,L.z/600.};
 
 	  float z1[W1_dim[1]];
 	  for (int i=0;i<W1_dim[1];i++){
@@ -200,8 +211,13 @@ public:
 	    for (int j=0;j<W1_dim[0];j++){
 	      s += data[j]*W1[W1_dim[1]*j+i];
 	    }
-	    z1[i] = tanh(s + b1[i]);
+	    z1[i] = ACTIVE1(s + b1[i]);
+	    if (printstuff){
+	      printf("%f ",z1[i]);
+	    }
 	  }
+	  if (printstuff)
+	    printf(" (z1) \n");
 
 	  float z2[W2_dim[1]];
 	  for (int i=0;i<W2_dim[1];i++){
@@ -209,8 +225,13 @@ public:
 	    for (int j=0;j<W2_dim[0];j++){
 	      s += z1[j]*W2[W2_dim[1]*j+i];
 	    }
-	    z2[i] = tanh(s + b2[i]);
+	    z2[i] = ACTIVE2(s + b2[i]);
+	    if (printstuff){
+	      printf("%f ",z2[i]);
+	    }
 	  }
+	  if (printstuff)
+	    printf(" (z2) \n");
 	  //printf("z2: %f %f %f\n",z2[0],z2[1],z2[2]);
 	  float z3[W3_dim[1]];
 	  for (int i=0;i<W3_dim[1];i++){
@@ -218,11 +239,15 @@ public:
 	    for (int j=0;j<W3_dim[0];j++){
 	      s += z2[j]*W3[W3_dim[1]*j+i];
 	    }
-	    z3[i] = sigmoid(s + b3[i]);
+	    z3[i] = ACTIVE3(s + b3[i]);
 	  }
 	  r = z3[0];
 	  g = z3[1];
 	  b = z3[2];
+	  //printf("%f %f %f\n",r,g,b);
+#undef ACTIVE1
+#undef ACTIVE2
+#undef ACTIVE3
 	}
 	/// Unserialize from a binary data stream
 	MIPathTracerEval(Stream *stream, InstanceManager *manager)
