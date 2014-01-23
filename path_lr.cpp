@@ -113,6 +113,7 @@ static long dcount = 0;
 static FILE* dset_file = NULL;
 static Point global_L;
 static bool hasLight;
+static int NITER;
 
 class MIPathTracerLR : public MonteCarloIntegrator {
 public:
@@ -121,9 +122,11 @@ public:
 	  printf("Build PTLR\n");
 	  printf("Has light: %d\n", props.hasProperty("light"));
 	  //global_L = props.getPoint("light");
+	  printf("Has niter: %d\n", props.hasProperty("niter"));
+	  NITER = props.getInteger("niter");
 	  diff = 0; dcount = 0; hasLight = false;
 	  if (dset_file == NULL){
-	    dset_file = fopen("dataset.dat","w");
+	    dset_file = fopen("dataset.dat","a");
 	  }
 	}
     
@@ -151,7 +154,7 @@ public:
 		bool isValidData = true;
 
 		RadianceQueryRecord initRRec = rRec;
-		int NITER = 80;
+		//int NITER = 200;
 		for (int iter=0;iter<NITER;iter++){
 		  rRec = initRRec;
 		  Intersection &its = rRec.its;
