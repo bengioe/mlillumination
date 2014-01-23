@@ -11,14 +11,10 @@ void main(){
   vec3 viewDirection = normalize(posInWorldSpace - camPos);
   
   // input is {X,Normal,View,Lightpos}
-  float input[12] = float[](posInWorldSpace.x/600., posInWorldSpace.y/600., posInWorldSpace.z/600.,
-			    normal.x, normal.y, normal.z,
-			    viewDirection.x, viewDirection.y, viewDirection.z,
-			    0.5,0.1,0.1);
-  float inputd[12] = float[](1,1,1,
-			     1,1,1,
-			     1,1,1,
-			     1,1,1);
+  float x[12] = float[](posInWorldSpace.x/600., posInWorldSpace.y/600., posInWorldSpace.z/600.,
+			normal.x, normal.y, normal.z,
+			viewDirection.x, viewDirection.y, viewDirection.z,
+			0.5,0.1,0.1);
   vec3 c;
   
   int W1p = 0;
@@ -31,12 +27,11 @@ void main(){
   float z1[N_LAYER1];
   float z2[N_LAYER2];
   float z3[N_LAYER3];
-  int i,j,k;
-  for (k=0;k<1;k++){
+  int i,j;
   for (i=0;i<N_LAYER1;i++){
     float s =0;
     for (j=0;j<12;j++){
-      s += input[j]*weightVector[W1p+N_LAYER1*j+i];
+      s += x[j]*weightVector[W1p+N_LAYER1*j+i];
     }
     s += weightVector[b1p+i];
     z1[i] = s < 0 ? 0 : s;
@@ -58,8 +53,6 @@ void main(){
     }
     s += weightVector[b3p+i];
     z3[i] = 1 / (1 + exp(-s));
-  }
-  input[0] += z3[0];
   }
   gl_FragColor = vec4(z3[0], z3[1], z3[2], 1);
 }
